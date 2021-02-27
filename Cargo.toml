@@ -1,0 +1,15 @@
+[package]
+name = "cdjs"
+version = "0.1.0"
+authors = ["ofhellsfire <ofhellsfire@yandex.ru>"]
+edition = "2018"
+
+[dependencies]
+
+[lib]
+name = "cdjs"
+crate-type = ["cdylib"]
+
+[dependencies.pyo3]
+version = "0.13.1"
+features = ["extension-module"]
