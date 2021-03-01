@@ -1,17 +1,47 @@
 # CDJS (Custom Datetime JSON Serializer)
 
+`cdjs` is an extension for [orjson](https://github.com/ijl/orjson) to serialize datetime in a custom way.
+
+By default [orjson](https://github.com/ijl/orjson) serializes datetime according to RFC 3339 format which sometimes may not suit. 
+[orjson](https://github.com/ijl/orjson) provides a mean to process datetime using custom serializer (via `OPT_PASSTHROUGH_DATETIME` flag and via `default=custom_datetime_serializer`). 
+Serializers are implemented in Python is usually not fast enough, that's the reason behind implemention of custom datetime serializer written in Rust to gain optimal speed.
+
+## Example
+
+```
+import datetime
+import orjson
+from cdjs import serialize_date
+
+mydate = datetime.datetime(2021, 1, 1, hour=0, minute=4, second=36, microsecond=123000)
+orjson.dumps(date, option=orjson.OPT_PASSTHROUGH_DATETIME, default=serialize_date)
+```
+
+## Benchmarks
+
+TODO
+
 ## Building
 
-To make a develop build
+### To make a develop build
 
 ```
-python ./setup.py install
+python ./setup.py develop
 ```
 
-To make a release build
+### To make a release build
+
+Pre-requisites
 
 ```
-python ./setup.py install
+pip install maturin
+```
+
+To compile, package and publish to PyPI
+
+```
+maturin build --no-sdist --release --strip --manylinux off
+maturin publish
 ```
 
 ## Testing
@@ -25,5 +55,4 @@ python -m unittest -v tests.test_serialization
 ## Python Version Support
 
 - python 3.6
-
 
