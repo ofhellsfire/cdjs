@@ -14,7 +14,7 @@ import orjson
 from cdjs import serialize_date
 
 mydate = datetime.datetime(2021, 1, 1, hour=0, minute=4, second=36, microsecond=123000)
-orjson.dumps(date, option=orjson.OPT_PASSTHROUGH_DATETIME, default=serialize_date)
+orjson.dumps(mydate, option=orjson.OPT_PASSTHROUGH_DATETIME, default=serialize_date)
 ```
 
 ## Benchmarks
@@ -40,6 +40,8 @@ python ./setup.py develop
 Pre-requisites
 
 ```
+# switch to nightly channel
+RUSTUP_USE_CURL=1 rustup default nightly-2021-01-31
 pip install maturin
 ```
 
