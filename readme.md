@@ -21,6 +21,12 @@ orjson.dumps(date, option=orjson.OPT_PASSTHROUGH_DATETIME, default=serialize_dat
 
 TODO
 
+## Installation
+
+```
+pip install cdjs
+```
+
 ## Building
 
 ### To make a develop build
