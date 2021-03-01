@@ -60,7 +60,10 @@ To run tests
 python -m unittest -v tests.test_serialization
 ```
 
-## Python Version Support
+## Python/OS Version Support
 
-- python 3.6
+- Python 3.6 (tested)
+- Python 3.7+ (not tested)
+- CentOS 7.6 (with GLib 2.17) - NOTE: default and is uploaded to PyPI
+- Debian family (with Glib 2.18) - NOTE: package with Glib 2.18 can be found in release section
 
