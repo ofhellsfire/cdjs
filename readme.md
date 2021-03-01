@@ -4,7 +4,7 @@
 
 By default [orjson](https://github.com/ijl/orjson) serializes datetime according to RFC 3339 format which sometimes may not suit. 
 [orjson](https://github.com/ijl/orjson) provides a mean to process datetime using custom serializer (via `OPT_PASSTHROUGH_DATETIME` flag and via `default=custom_datetime_serializer`). 
-Serializers are implemented in Python is usually not fast enough, that's the reason behind implemention of custom datetime serializer written in Rust to gain optimal speed.
+Serializers implemented in Python are usually not fast enough, that's the reason behind implementation of the custom datetime serializer written in Rust to gain optimal speed.
 
 ## Example
 
