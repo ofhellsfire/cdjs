@@ -19,7 +19,14 @@ orjson.dumps(mydate, option=orjson.OPT_PASSTHROUGH_DATETIME, default=serialize_d
 
 ## Benchmarks
 
-TODO
+To run benchmark:
+
+```
+pip install -r bench-requirements.txt
+python tests/benchmark.py
+```
+
+![UTC Dates Only Benchmark](http://)
 
 ## Installation
 

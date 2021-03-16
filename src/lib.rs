@@ -62,9 +62,9 @@ fn get_tzinfo(date: &PyDateTime) -> PyResult<TzInfo> {
     })
 }
 
-fn update_ms_tail(tail: &mut String, us: Num, has_tz: bool) {
+fn update_ms_tail(tail: &mut String, us: Num, has_tz: bool, is_epoch_aware: bool) {
     let ms = us / 1000;
-    if ms != 0 {
+    if ms != 0 || !is_epoch_aware {
         let s = format!(".{:03}", ms);
         tail.push_str(&s);
     }
@@ -89,13 +89,16 @@ fn update_tz_tail(tail: &mut String, tzinfo: &TzInfo) {
 
 #[pyfunction]
 fn serialize_date(date_obj: &PyDateTime) -> PyResult<HashMap<String, String>> {
+    let is_epoch_aware = date_obj.get_year() >= 1970;
     let tzinfo = get_tzinfo(&date_obj)?;
-    if date_obj.get_year() < 1970 {
-        return Err(PyValueError::new_err("Module does not support year less than 1970"));
+    if  !is_epoch_aware && tzinfo.has_tz() {
+        return Err(PyValueError::new_err(
+            "Module does not support year less than 1970 with tzinfo"
+        ));
     }
     let us = date_obj.get_microsecond();
     let mut tail = String::new();
-    update_ms_tail(&mut tail, us as Num, tzinfo.has_tz());
+    update_ms_tail(&mut tail, us as Num, tzinfo.has_tz(), is_epoch_aware);
     if tzinfo.has_tz() {
         update_tz_tail(&mut tail, &tzinfo);
     }
@@ -115,9 +118,15 @@ fn serialize_date(date_obj: &PyDateTime) -> PyResult<HashMap<String, String>> {
     Ok(result)
 }
 
+#[pyfunction]
+fn do_nothing(_date_obj: &PyDateTime) -> PyResult<String> {
+    Ok(String::from("{}"))
+}
+
 #[pymodule]
 fn cdjs(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(serialize_date, m)?)?;
+    m.add_function(wrap_pyfunction!(do_nothing, m)?)?;
 
     Ok(())
 }

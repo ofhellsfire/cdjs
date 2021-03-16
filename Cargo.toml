@@ -1,6 +1,6 @@
 [package]
 name = "cdjs"
-version = "0.1.3"
+version = "0.1.4"
 authors = ["ofhellsfire <ofhellsfire@yandex.ru>"]
 description = "Custom Datetime JSON Serializer"
 edition = "2018"
