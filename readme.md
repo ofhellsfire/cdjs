@@ -15,6 +15,8 @@ from cdjs import serialize_date
 
 mydate = datetime.datetime(2021, 1, 1, hour=0, minute=4, second=36, microsecond=123000)
 orjson.dumps(mydate, option=orjson.OPT_PASSTHROUGH_DATETIME, default=serialize_date)
+
+# b'{"$date":"2021-01-01T00:04:36.123Z"}'
 ```
 
 ## Benchmarks
@@ -23,7 +25,7 @@ To run benchmark:
 
 ```
 pip install -r bench-requirements.txt
-python tests/benchmark.py
+python tests/benchmark.py -s utc_dates
 ```
 
 ![UTC Dates Only Benchmark](https://github.com/ofhellsfire/cdjs/blob/master/assets/images/orjson_plus_cdjs_benchmark.png)
