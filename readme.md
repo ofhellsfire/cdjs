@@ -26,7 +26,7 @@ pip install -r bench-requirements.txt
 python tests/benchmark.py
 ```
 
-![UTC Dates Only Benchmark](http://)
+![UTC Dates Only Benchmark](https://github.com/ofhellsfire/cdjs/blob/master/assets/images/orjson_plus_cdjs_benchmark.png)
 
 ## Installation
 
