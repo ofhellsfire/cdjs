@@ -136,7 +136,7 @@ fn serialize(obj: &PyAny) -> PyResult<HashMap<String, String>> {
 }
 
 #[pyfunction]
-fn do_nothing(_date_obj: &PyAny) -> PyResult<String> {
+fn do_nothing(_obj: &PyAny) -> PyResult<String> {
     Ok(String::from("{}"))
 }
 
