@@ -3,7 +3,7 @@ from setuptools_rust import Binding, RustExtension
 
 setup(
     name="cdjs",
-    version="0.1.4",
+    version="0.1.5",
     rust_extensions=[RustExtension("cdjs.cdjs", binding=Binding.PyO3)],
     packages=["cdjs"],
     author="ofhellsfire",
