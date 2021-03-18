@@ -3,7 +3,7 @@ use std::os::raw::c_char;
 
 use pyo3::AsPyPointer;
 use pyo3::{exceptions, wrap_pyfunction};
-use pyo3::exceptions::PyValueError;
+use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::ffi::*;
 use pyo3::prelude::*;
 use pyo3::types::{PyDateTime, PyDateAccess, PyTimeAccess};
@@ -87,7 +87,6 @@ fn update_tz_tail(tail: &mut String, tzinfo: &TzInfo) {
     tail.push_str(&s);
 }
 
-#[pyfunction]
 fn serialize_date(date_obj: &PyDateTime) -> PyResult<HashMap<String, String>> {
     let is_epoch_aware = date_obj.get_year() >= 1970;
     let tzinfo = get_tzinfo(&date_obj)?;
@@ -118,15 +117,33 @@ fn serialize_date(date_obj: &PyDateTime) -> PyResult<HashMap<String, String>> {
     Ok(result)
 }
 
+fn serialize_objectid(obj: &PyAny) -> PyResult<HashMap<String, String>> {
+    let mut result: HashMap<_, _> = HashMap::new();
+    result.insert(String::from("$oid"), obj.to_string());
+
+    Ok(result)
+}
+
 #[pyfunction]
-fn do_nothing(_date_obj: &PyDateTime) -> PyResult<String> {
+fn serialize(obj: &PyAny) -> PyResult<HashMap<String, String>> {
+    if obj.is_instance::<PyDateTime>()? {
+        return serialize_date(obj.downcast::<PyDateTime>()?);
+    } else if obj.get_type().name()? == "ObjectId" {
+        return serialize_objectid(obj);
+    } else {
+        return Err(PyTypeError::new_err("Type is not JSON serializable"));
+    }
+}
+
+#[pyfunction]
+fn do_nothing(_date_obj: &PyAny) -> PyResult<String> {
     Ok(String::from("{}"))
 }
 
 #[pymodule]
 fn cdjs(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(serialize_date, m)?)?;
     m.add_function(wrap_pyfunction!(do_nothing, m)?)?;
+    m.add_function(wrap_pyfunction!(serialize, m)?)?;
 
     Ok(())
 }
@@ -143,14 +160,6 @@ macro_rules! ffi {
 
     ($fn:ident($obj1:expr, $obj2:expr)) => {
         unsafe { pyo3::ffi::$fn($obj1, $obj2) }
-    };
-
-    ($fn:ident($obj1:expr, $obj2:expr, $obj3:expr)) => {
-        unsafe { pyo3::ffi::$fn($obj1, $obj2, $obj3) }
-    };
-
-    ($fn:ident($obj1:expr, $obj2:expr, $obj3:expr, $obj4:expr)) => {
-        unsafe { pyo3::ffi::$fn($obj1, $obj2, $obj3, $obj4) }
     };
 }
 

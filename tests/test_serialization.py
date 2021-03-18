@@ -1,8 +1,11 @@
 from datetime import datetime as dt
 from datetime import tzinfo, timedelta, timezone
+import hashlib
 import unittest
 
-from cdjs import serialize_date
+from bson import ObjectId
+
+from cdjs import serialize
 
 
 class GMT1(tzinfo):
@@ -40,7 +43,11 @@ class CustomGMT2(tzinfo):
     def tzname(self, dt):
         return "Custom22/Custom22"
 
-# TODO: update tests for dates < 1970
+
+class SomeCustomClass:
+    pass
+
+
 class TestSerialization(unittest.TestCase):
 
     def test_uno(self):
@@ -48,7 +55,7 @@ class TestSerialization(unittest.TestCase):
         """
         d = dt(1945, 5, 9, hour=18, minute=52, second=56, tzinfo=None)
         self.assertEqual(
-            serialize_date(d),
+            serialize(d),
             {"$date": "1945-05-09T18:52:56.000Z"}
         )
 
@@ -57,7 +64,7 @@ class TestSerialization(unittest.TestCase):
         """
         d = dt(1945, 5, 9, hour=3, minute=3, second=3, tzinfo=None)
         self.assertEqual(
-            serialize_date(d),
+            serialize(d),
             {"$date": "1945-05-09T03:03:03.000Z"}
         )
 
@@ -66,7 +73,7 @@ class TestSerialization(unittest.TestCase):
         """
         d = dt(1945, 12, 29, hour=0, minute=0, second=0, microsecond=447000, tzinfo=None)
         self.assertEqual(
-            serialize_date(d),
+            serialize(d),
             {"$date": "1945-12-29T00:00:00.447Z"}
         )
 
@@ -75,7 +82,7 @@ class TestSerialization(unittest.TestCase):
         """
         d = dt(1945, 5, 9, hour=18, minute=52, second=56, microsecond=0, tzinfo=timezone.utc)
         self.assertEqual(
-            serialize_date(d),
+            serialize(d),
             {"$date": "1945-05-09T18:52:56.000Z"}
         )
 
@@ -84,14 +91,14 @@ class TestSerialization(unittest.TestCase):
         """
         d = dt(1945, 5, 9, hour=18, minute=52, second=56, microsecond=0, tzinfo=GMT1())
         with self.assertRaises(ValueError):
-            serialize_date(d)
+            serialize(d)
 
     def test_seis(self):
         """datetime and year < 1970 with TZ info with TZ with microseconds
         """
         d = dt(1945, 5, 9, hour=18, minute=52, second=56, microsecond=678000, tzinfo=timezone.utc)
         self.assertEqual(
-            serialize_date(d),
+            serialize(d),
             {"$date": "1945-05-09T18:52:56.678Z"}
         )
 
@@ -100,21 +107,21 @@ class TestSerialization(unittest.TestCase):
         """
         d = dt(1945, 5, 9, hour=18, minute=52, second=56, microsecond=718000, tzinfo=GMT1())
         with self.assertRaises(ValueError):
-            serialize_date(d)
+            serialize(d)
 
     def test_ocho(self):
         """datetime and year < 1970 with TZ info (non utc, non even ) with TZ with microseconds
         """
         d = dt(1945, 5, 9, hour=18, minute=52, second=56, microsecond=718000, tzinfo=CustomGMT())
         with self.assertRaises(ValueError):
-            serialize_date(d)
+            serialize(d)
 
     def test_nueve(self):
         """default() with ISO datetime representation without TZ info without Epoch Aware without ms
         """
         d = dt(1921, 2, 18, hour=14, minute=4, second=36, microsecond=0)
         self.assertEqual(
-            serialize_date(d),
+            serialize(d),
             {"$date": "1921-02-18T14:04:36.000Z"}
         )
 
@@ -123,7 +130,7 @@ class TestSerialization(unittest.TestCase):
         """
         d = dt(2021, 2, 18, hour=14, minute=4, second=36, microsecond=0)
         self.assertEqual(
-            serialize_date(d),
+            serialize(d),
             {"$date": "2021-02-18T14:04:36Z"}
         )
 
@@ -132,7 +139,7 @@ class TestSerialization(unittest.TestCase):
         """
         d = dt(1921, 2, 18, hour=14, minute=4, second=36, microsecond=47000)
         self.assertEqual(
-            serialize_date(d),
+            serialize(d),
             {"$date": "1921-02-18T14:04:36.047Z"}
         )
 
@@ -141,7 +148,7 @@ class TestSerialization(unittest.TestCase):
         """
         d = dt(2021, 2, 18, hour=14, minute=4, second=36, microsecond=28000)
         self.assertEqual(
-            serialize_date(d),
+            serialize(d),
             {"$date": "2021-02-18T14:04:36.028Z"}
         )
 
@@ -150,21 +157,21 @@ class TestSerialization(unittest.TestCase):
         """
         d = dt(1921, 2, 18, hour=14, minute=4, second=36, microsecond=0, tzinfo=GMT1())
         with self.assertRaises(ValueError):
-            serialize_date(d)
+            serialize(d)
 
     def test_catorce(self):
         """default() with ISO datetime representation with TZ info without Epoch Aware with ms
         """
         d = dt(1921, 2, 18, hour=14, minute=4, second=36, microsecond=28000, tzinfo=GMT1())
         with self.assertRaises(ValueError):
-            serialize_date(d)
+            serialize(d)
 
     def test_quince(self):
         """default() with ISO datetime representation with TZ info with Epoch Aware without ms
         """
         d = dt(2021, 2, 18, hour=14, minute=4, second=36, microsecond=0, tzinfo=GMT1())
         self.assertEqual(
-            serialize_date(d),
+            serialize(d),
             {"$date": "2021-02-18T14:04:36+0100"}
         )
 
@@ -173,7 +180,7 @@ class TestSerialization(unittest.TestCase):
         """
         d = dt(2021, 2, 18, hour=14, minute=4, second=36, microsecond=36000, tzinfo=GMT1())
         self.assertEqual(
-            serialize_date(d),
+            serialize(d),
             {"$date": "2021-02-18T14:04:36.036+0100"}
         )
 
@@ -182,7 +189,7 @@ class TestSerialization(unittest.TestCase):
         """
         d = dt(2021, 2, 18, hour=0, minute=4, second=36, microsecond=0, tzinfo=GMT1())
         self.assertEqual(
-            serialize_date(d),
+            serialize(d),
             {"$date": "2021-02-18T00:04:36+0100"}
         )
 
@@ -191,7 +198,7 @@ class TestSerialization(unittest.TestCase):
         """
         d = dt(2021, 2, 18, hour=0, minute=4, second=36, microsecond=36000, tzinfo=GMT1())
         self.assertEqual(
-            serialize_date(d),
+            serialize(d),
             {"$date": "2021-02-18T00:04:36.036+0100"}
         )
 
@@ -200,21 +207,21 @@ class TestSerialization(unittest.TestCase):
         """
         d = dt(1921, 2, 18, hour=0, minute=4, second=36, microsecond=0, tzinfo=GMT1())
         with self.assertRaises(ValueError):
-            serialize_date(d)
+            serialize(d)
 
     def test_veinte(self):
         """default() with ISO datetime representation with TZ info without Epoch Aware with ms
         """
         d = dt(1921, 2, 18, hour=0, minute=4, second=36, microsecond=28000, tzinfo=GMT1())
         with self.assertRaises(ValueError):
-            serialize_date(d)
+            serialize(d)
 
     def test_veintiuno(self):
         """default() with ISO datetime representation with TZ info (- timezone) with Epoch Aware with ms
         """
         d = dt(2021, 2, 18, hour=23, minute=4, second=36, microsecond=555000, tzinfo=GMT2())
         self.assertEqual(
-            serialize_date(d),
+            serialize(d),
             {"$date": "2021-02-18T23:04:36.555-0300"}
         )
 
@@ -223,14 +230,14 @@ class TestSerialization(unittest.TestCase):
         """
         d = dt(1921, 2, 18, hour=23, minute=4, second=36, microsecond=555000, tzinfo=GMT2())
         with self.assertRaises(ValueError):
-            serialize_date(d)
+            serialize(d)
 
     def test_veintitres(self):
         """default() with ISO datetime representation with TZ info (+ timezone) with Epoch Aware with ms (year edge)
         """
         d = dt(2020, 12, 31, hour=23, minute=4, second=36, microsecond=123000, tzinfo=GMT1())
         self.assertEqual(
-            serialize_date(d),
+            serialize(d),
             {"$date": "2020-12-31T23:04:36.123+0100"}
         )
 
@@ -239,7 +246,7 @@ class TestSerialization(unittest.TestCase):
         """
         d = dt(2021, 1, 1, hour=0, minute=4, second=36, microsecond=123000, tzinfo=GMT2())
         self.assertEqual(
-            serialize_date(d),
+            serialize(d),
             {"$date": "2021-01-01T00:04:36.123-0300"}
         )
 
@@ -248,7 +255,7 @@ class TestSerialization(unittest.TestCase):
         """
         d = dt(2021, 1, 1, hour=0, minute=4, second=36, microsecond=123000, tzinfo=CustomGMT())
         self.assertEqual(
-            serialize_date(d),
+            serialize(d),
             {"$date": "2021-01-01T00:04:36.123+0130"}
         )
 
@@ -257,9 +264,26 @@ class TestSerialization(unittest.TestCase):
         """
         d = dt(2021, 1, 1, hour=0, minute=4, second=36, microsecond=123000, tzinfo=CustomGMT2())
         self.assertEqual(
-            serialize_date(d),
+            serialize(d),
             {"$date": "2021-01-01T00:04:36.123-0130"}
         )
+
+    def test_veintisiete(self):
+        """ObjectId support
+        """
+        obj = ObjectId(hashlib.md5(b'test').hexdigest()[:24])
+        self.assertEqual(
+            serialize(obj),
+            {"$oid": "098f6bcd4621d373cade4e83"}
+        )
+
+    def test_veintiocho(self):
+        """Not supported type
+        """
+        obj = SomeCustomClass()
+        with self.assertRaises(TypeError):
+            serialize(obj)
+
 
 # TODO: 1. Add edge cases where month, year can be shifted (for year < 1970)
 # TODO: 2. Add cases for unexpected exceptions and non supported libs exceptions
